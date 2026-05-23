@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>JARVIS — Advanced AI</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+
+<!-- Scanline overlay -->
+<div class="scanlines"></div>
+
+<!-- Particle canvas -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- Ambient orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  MAIN HUD LAYOUT                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="hud">
+
+  <!-- ── LEFT PANEL ── -->
+  <aside class="panel panel-left">
+
+    <div class="panel-title">⚡ SYSTEM STATUS</div>
+
+    <div class="sys-clock">
+      <div class="sys-time" id="sysTime">00:00:00</div>
+      <div class="sys-date" id="sysDate">Loading...</div>
+    </div>
+
+    <div class="sys-metric">
+      <div class="metric-header">
+        <span>CPU USAGE</span>
+        <span id="cpuVal">--</span>
+      </div>
+      <div class="ring-wrap">
+        <svg class="ring-chart" viewBox="0 0 60 60">
+          <circle class="ring-track" cx="30" cy="30" r="24"/>
+          <circle class="ring-fill" id="cpuRing" cx="30" cy="30" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+        </svg>
+        <span class="ring-pct" id="cpuPct">0%</span>
+      </div>
+      <div class="sparkline" id="cpuSpark"></div>
+    </div>
+
+    <div class="sys-metric">
+      <div class="metric-header">
+        <span>RAM USAGE</span>
+        <span id="ramVal">--</span>
+      </div>
+      <div class="ring-wrap">
+        <svg class="ring-chart" viewBox="0 0 60 60">
+          <circle class="ring-track" cx="30" cy="30" r="24"/>
+          <circle class="ring-fill" id="ramRing" cx="30" cy="30" r="24" stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+        </svg>
+        <span class="ring-pct" id="ramPct">0%</span>
+      </div>
+      <div class="sparkline" id="ramSpark"></div>
+    </div>
+
+    <div class="sys-metric">
+      <div class="metric-header">
+        <span>NETWORK</span>
+      </div>
+      <div class="net-stats">
+        <div>↑ <span id="netUp">0.0</span> Mbps</div>
+        <div>↓ <span id="netDown">0.0</span> Mbps</div>
+      </div>
+      <div class="sparkline" id="netSpark"></div>
+    </div>
+
+    <div class="sys-metric">
+      <div class="metric-header">
+        <span>BATTERY</span>
+        <span id="batPct">--%</span>
+      </div>
+      <div class="bat-bar-wrap">
+        <div class="bat-bar"><div class="bat-fill" id="batFill"></div></div>
+        <span class="bat-status" id="batStatus">--</span>
+      </div>
+    </div>
+
+    <div class="sys-metric">
+      <div class="metric-header"><span>🧠 AI MOOD</span></div>
+      <div class="ai-mood" id="aiMood">
+        <span class="mood-icon">😊</span>
+        <span class="mood-label" id="moodLabel">Ready</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── CENTER PANEL ── -->
+  <main class="panel panel-center">
+
+    <!-- Header -->
+    <div class="center-header">
+      <div class="avatar-wrap">
+        <div class="avatar-rings">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="ring r3"></div>
+        </div>
+        <div class="avatar-core" id="avatarCore">
+          <div class="eye-row">
+            <div class="eye" id="eyeL"><div class="pupil"></div></div>
+            <div class="eye" id="eyeR"><div class="pupil"></div></div>
+          </div>
+          <div class="ai-mouth" id="aiMouth">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="avatar-pulse" id="avatarPulse"></div>
+      </div>
+
+      <div class="hud-title-wrap">
+        <h1 class="hud-title">JARVIS</h1>
+        <p class="hud-sub">ADVANCED AI ASSISTANT</p>
+        <div class="hud-status-row">
+          <span class="status-pip active"></span>
+          <span class="status-text">ONLINE</span>
+          <span class="divider">|</span>
+          <span class="status-text">VOICE: <span id="voiceStatus" class="accent">ACTIVE</span></span>
+          <span class="divider">|</span>
+          <span class="status-text">MEMORY: <span class="accent">ENABLED</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-window" id="chatWindow"></div>
+
+    <!-- Transcript bar -->
+    <div class="transcript-bar" id="transcriptBar">
+      <span class="t-icon">◉</span>
+      <span id="liveText">Kuch bolo ya type karo...</span>
+    </div>
+
+    <!-- Input -->
+    <div class="input-zone">
+      <button class="mic-btn" id="micBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        <div class="mic-waves" id="micWaves">
+          <span></span><span></span><span></span>
+        </div>
+      </button>
+
+      <input id="textInput" type="text" placeholder="Type ya voice se baat karo..." autocomplete="off"/>
+
+      <div class="voice-bars" id="voiceBars">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+
+      <button class="send-btn" id="sendBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Quick commands -->
+    <div class="quick-cmds">
+      <button onclick="quickCmd('Open YouTube')">▶ YouTube</button>
+      <button onclick="quickCmd('Tell me a joke')">😄 Joke</button>
+      <button onclick="quickCmd('What time is it?')">🕐 Time</button>
+      <button onclick="quickCmd('Motivate me')">🚀 Motivate</button>
+      <button onclick="quickCmd('Aaj ka weather batao')">🌤 Weather</button>
+      <button onclick="quickCmd('Clear chat')" id="clearBtn">🗑 Clear</button>
+    </div>
+
+    <!-- Bottom hint -->
+    <div class="bottom-hint">
+      <kbd>SPACE</kbd> mic on/off &nbsp;·&nbsp;
+      <kbd>ENTER</kbd> send message &nbsp;·&nbsp;
+      <kbd>ESC</kbd> clear chat
+    </div>
+
+  </main>
+
+  <!-- ── RIGHT PANEL ── -->
+  <aside class="panel panel-right">
+
+    <div class="panel-title">⚡ QUICK ACTIONS</div>
+
+    <div class="action-grid">
+      <button class="action-btn" onclick="quickCmd('Open YouTube')">
+        <span class="action-icon">▶</span>
+        <span>YouTube</span>
+      </button>
+      <button class="action-btn" onclick="quickCmd('Search Google')">
+        <span class="action-icon">🔍</span>
+        <span>Google</span>
+      </button>
+      <button class="action-btn" onclick="quickCmd('Play music')">
+        <span class="action-icon">🎵</span>
+        <span>Music</span>
+      </button>
+      <button class="action-btn" onclick="quickCmd('Take a note')">
+        <span class="action-icon">📝</span>
+        <span>Notes</span>
+      </button>
+      <button class="action-btn" onclick="quickCmd('Aaj ka weather batao')">
+        <span class="action-icon">🌤</span>
+        <span>Weather</span>
+      </button>
+      <button class="action-btn" onclick="quickCmd('Latest news')">
+        <span class="action-icon">📰</span>
+        <span>News</span>
+      </button>
+      <button class="action-btn" onclick="quickCmd('Open calculator')">
+        <span class="action-icon">🧮</span>
+        <span>Calc</span>
+      </button>
+      <button class="action-btn" onclick="quickCmd('Set reminder')">
+        <span class="action-icon">🔔</span>
+        <span>Reminder</span>
+      </button>
+    </div>
+
+    <!-- Memory Bank -->
+    <div class="panel-title" style="margin-top:16px">🧠 MEMORY BANK</div>
+    <div class="memory-list" id="memoryList">
+      <div class="memory-item">
+        <span class="mem-dot"></span>
+        <span class="mem-text">Waiting for memories...</span>
+        <span class="mem-time"></span>
+      </div>
+    </div>
+    <button class="view-all-btn" onclick="quickCmd('Show my memories')">VIEW ALL</button>
+
+    <!-- Weather Widget -->
+    <div class="panel-title" style="margin-top:16px">🌤 WEATHER</div>
+    <div class="weather-widget" id="weatherWidget">
+      <div class="weather-main">
+        <div class="weather-icon-big" id="weatherIcon">☁️</div>
+        <div class="weather-temp" id="weatherTemp">--°C</div>
+      </div>
+      <div class="weather-desc" id="weatherDesc">Loading...</div>
+      <div class="weather-details">
+        <div class="wd-item">💧 <span id="weatherHum">--%</span></div>
+        <div class="wd-item">💨 <span id="weatherWind">-- km/h</span></div>
+        <div class="wd-item">🌡 <span id="weatherFeel">--°C</span></div>
+      </div>
+      <div class="weather-loc" id="weatherLoc">📍 Detecting location...</div>
+    </div>
+
+  </aside>
+
+</div><!-- /hud -->
+
+<script src="/static/app.js"></script>
+</body>
+</html>
