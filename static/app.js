@@ -18,7 +18,7 @@ const memoryList   = document.getElementById("memoryList");
 const moodLabel    = document.getElementById("moodLabel");
 const moodIcon     = document.querySelector(".mood-icon");
 
-const BACKEND = "http://127.0.0.1:5000/api/command";
+const BACKEND = "https://jarvis-ai-8zh0.onrender.com/api/command";
 
 let listening = false;
 let speaking  = false;
