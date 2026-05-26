@@ -6,6 +6,10 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import google.generativeai as genai
 import datetime, os, sys, subprocess, webbrowser, random, sqlite3, threading
+from dotenv import load_dotenv
+
+# ── LOAD .env FILE — API KEY SAFE RAHEGI! ──
+load_dotenv()
 
 # ─────────────────────────────────────────────────────────────
 # DATABASE SETUP — AUTO FIX OLD BROKEN DB
@@ -72,9 +76,13 @@ app = Flask(__name__)
 CORS(app)
 
 # ─────────────────────────────────────────────────────────────
-# GEMINI SETUP
+# GEMINI SETUP — KEY .env SE LOAD HOGI (GITHUB PE SAFE!)
 # ─────────────────────────────────────────────────────────────
-GEMINI_API_KEY = "AIzaSyApnG5ybQAt5lJNBTZZF-pwyA-It8tkt38"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+if not GEMINI_API_KEY:
+    print("⚠️  WARNING: GEMINI_API_KEY .env file mein nahi mili!")
+else:
+    print("✓ Gemini API key .env se load hui — SAFE!")
 genai.configure(api_key=GEMINI_API_KEY)
 
 SYSTEM_INSTRUCTION = """
@@ -697,7 +705,6 @@ def command():
         result = handle_open(t)
         if result:
             return jsonify({"reply": result})
-        # Fallback to AI if not found
         return jsonify({"reply": ai_reply(raw)})
 
     # ── NEWS ──
@@ -727,7 +734,7 @@ def command():
     # ── SHUTDOWN ──
     if intent == "shutdown":
         plat = get_platform()
-        if plat == "win":   run_cmd("shutdown /s /t 5")
+        if plat == "win":    run_cmd("shutdown /s /t 5")
         elif plat == "linux": run_cmd("shutdown -h now")
         elif plat == "darwin": run_cmd("sudo shutdown -h now")
         return jsonify({"reply": "PC 5 second mein shutdown ho raha hai sir! Sab kaam save kar lo. 🔴"})
@@ -735,7 +742,7 @@ def command():
     # ── RESTART ──
     if intent == "restart":
         plat = get_platform()
-        if plat == "win":   run_cmd("shutdown /r /t 5")
+        if plat == "win":    run_cmd("shutdown /r /t 5")
         elif plat == "linux": run_cmd("reboot")
         elif plat == "darwin": run_cmd("sudo reboot")
         return jsonify({"reply": "PC restart ho raha hai sir! Thodi der mein wapas milenge. 🔄"})
@@ -792,7 +799,6 @@ def command():
             cursor.execute("DELETE FROM facts")
             cursor.execute("DELETE FROM reminders")
             conn.commit()
-        # Reset Gemini session bhi
         chat_session = gemini_model.start_chat(history=[])
         return jsonify({"reply": "Sari memory clear kar di sir! Bilkul fresh start. 🗑️"})
 
@@ -803,7 +809,7 @@ def command():
         elif get_platform() == "darwin": run_cmd("open -a Calculator")
         return jsonify({"reply": "Calculator khol raha hoon sir! 🧮"})
 
-    # ── REMINDER (basic) ──
+    # ── REMINDER ──
     if intent == "reminder":
         return jsonify({"reply": ai_reply(raw)})
 
@@ -835,6 +841,7 @@ if __name__ == "__main__":
     print("   ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝")
     print("═"*55)
     print(f"  Gemini AI  : ✓ gemini-1.5-flash")
+    print(f"  API Key    : ✓ .env se load — GitHub pe SAFE!")
     print(f"  Wikipedia  : {'✓ Ready' if WIKI_OK else '✗  →  pip install wikipedia'}")
     print(f"  Requests   : {'✓ Ready' if REQUESTS_OK else '✗  →  pip install requests'}")
     print(f"  Memory DB  : ✓ Persistent (restart-safe)")
